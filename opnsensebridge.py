@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-import cgi
 import requests
 import json
 import ipaddress
 import sys
+import os
+import urllib
 
 def getservers(opnsenseURL, APIkey, APIsecret):
     r = requests.get(f'{opnsenseURL}/api/wireguard/server/searchServer/',
@@ -117,14 +118,17 @@ def reconfigure(opnsenseURL, APIkey, APIsecret):
 
 
 print("Content-type: text/html\n\n")
-form = cgi.FieldStorage()
-if form.getvalue('task') == "getservers":
-    getservers(form.getvalue('opnsenseURL'),form.getvalue('key'),form.getvalue('secret'))
-if form.getvalue('task') == "getip":
-    getip(form.getvalue('opnsenseURL'),form.getvalue('key'),form.getvalue('secret'),form.getvalue('tunnelRealm'))
-if form.getvalue('task') == "createclient":
-    uuid = createclient(form.getvalue('opnsenseURL'),form.getvalue('key'),form.getvalue('secret'),form.getvalue('PeerName'),form.getvalue('pubkey'),form.getvalue('pskey'),form.getvalue('tunnelAddress'))
-if form.getvalue('task') == "enableclient":
-    enableclient(form.getvalue('opnsenseURL'),form.getvalue('key'),form.getvalue('secret'),form.getvalue('ServerUUID'),form.getvalue('PeerUUID'))
-if form.getvalue('task') == "reconfigure":
-    reconfigure(form.getvalue('opnsenseURL'),form.getvalue('key'),form.getvalue('secret'))
+
+form=urllib.parse.parse_qs(os.environ['QUERY_STRING'])
+match form['task'][0]:
+    case "getservers":
+        getservers(form['opnsenseURL'][0],form['key'][0],form['secret'][0])
+    case "getip":
+        getip(form['opnsenseURL'][0],form['key'][0],form['secret'][0],form['tunnelRealm'][0])
+    case "createclient":
+        uuid = createclient(form['opnsenseURL'][0],form['key'][0],form['secret'][0],form['PeerName'][0],form['pubkey'][0],form['pskey'][0],form['tunnelAddress'][0])
+    case "enableclient":
+        enableclient(form['opnsenseURL'][0],form['key'][0],form['secret'][0],form['ServerUUID'][0],form['PeerUUID'][0])
+    case "reconfigure":
+        reconfigure(form['opnsenseURL'][0],form['key'][0],form['secret'][0])
+
